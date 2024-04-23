@@ -1,13 +1,20 @@
 <template>  
-  <Modal :onerooms="onerooms" :selectIdx="selectIdx" :modalOpen="modalOpen"/>
+  <transition name="fade">
+    <Modal @closeModal="modalOpen = false"  :onerooms="onerooms" :selectIdx="selectIdx" :modalOpen="modalOpen"/>
+  </transition>  
 
   <div class="menu">
     <a v-for="menu in menus" :key="menu">{{ menu }}</a>
   </div>
 
-  <Discount/>
+  <Discount v-if="this.showDiscount == true"/>
 
-  <Card :product="product" v-for="product in onerooms" :key="product.id"/>
+  <button @click="priceSort">가격순정렬</button>
+  <button @click="priceReverseSort">가격역순정렬</button>
+  <button @click="titleSort">제목가나다정렬</button>
+  <button @click="sortBack">되돌리기</button>
+
+  <Card @openModal="modalOpen = true; selectIdx = $event" :product="product" v-for="product in onerooms" :key="product.id"/>
 </template> 
 
 <script>
@@ -20,6 +27,8 @@ export default {
   name: 'App',
   data() {
     return {
+      showDiscount : true,
+      oneroomsOriginal : [...data],
       onerooms : data,
       selectIdx : 0,
       modalOpen : false,
@@ -34,15 +43,33 @@ export default {
     increase(product) {
       product.alert++;
     },
-    getIconPath (iconName) {
-      return iconName ? require(`./assets/${iconName}`) : '';
-    }
+    priceSort() {
+      this.onerooms.sort(function(a,b) {
+        return a.price - b.price
+      });
+    },
+    priceReverseSort() {
+      this.onerooms.sort(function(a,b) {
+        return b.price - a.price
+      });
+    },
+    titleSort() {
+      this.onerooms.sort((a,b) => {
+        if(a.title > b.title) return 1;
+        else return -1;
+      });
+    },
+    sortBack() {
+      this.onerooms = [...this.oneroomsOriginal];
+    },
+
   },
   components: {
     Discount : Discount,
     Modal : ModalVue,
     Card : CardVue
-  }
+  },
+
 }
 </script>
 
@@ -61,6 +88,30 @@ div {
   padding: 10px;
   margin: 10px;
   border-radius: 5px;
+}
+
+.fade-leave-from {
+  opacity: 1;
+}
+
+.fade-leave-active {
+  transition : all 1s;
+}
+
+.fade-leave-to {
+  opacity: 0;
+}
+
+.fade-enter-from {
+  transform: translateY(-1000px);
+}
+
+.fade-enter-active {
+  transition : all 1s;
+}
+
+.fade-enter-to {
+  transform: translateY(0px);
 }
 
 .black-bg {
